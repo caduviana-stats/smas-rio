@@ -52,3 +52,165 @@ document.getElementById('closeDrawer').onclick=()=>document.getElementById('draw
 map.on('click',()=>{results.style.display='none'});
 </script>
 </body></html>
+
+<style>
+/* MELHORIAS MOBILE — colar no final do código */
+@media (max-width: 768px){
+
+  #map{
+    inset:56px 0 0 0 !important;
+    width:100vw !important;
+    height:calc(100vh - 56px) !important;
+  }
+
+  .topbar{
+    height:56px !important;
+    padding:0 10px !important;
+    gap:8px !important;
+  }
+
+  .brand{
+    min-width:0 !important;
+  }
+
+  .brand-mark{
+    width:34px !important;
+    height:34px !important;
+    border-radius:10px !important;
+    font-size:12px !important;
+  }
+
+  .brand h1{
+    font-size:13px !important;
+    max-width:210px !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  .brand p,
+  .stats,
+  .footer-badge{
+    display:none !important;
+  }
+
+  .sidebar{
+    position:absolute !important;
+    left:10px !important;
+    right:10px !important;
+    top:66px !important;
+    width:auto !important;
+    max-height:38vh !important;
+    border-radius:16px !important;
+    overflow:auto !important;
+    display:none;
+  }
+
+  .sidebar.mobile-open{
+    display:block !important;
+    z-index:6000 !important;
+  }
+
+  .drawer{
+    position:absolute !important;
+    left:10px !important;
+    right:10px !important;
+    top:auto !important;
+    bottom:10px !important;
+    width:auto !important;
+    max-width:none !important;
+    max-height:58vh !important;
+    border-radius:20px 20px 16px 16px !important;
+    transform:translateY(calc(100% + 30px)) !important;
+    z-index:7000 !important;
+  }
+
+  .drawer.open{
+    transform:translateY(0) !important;
+  }
+
+  .drawer-head{
+    padding:16px 48px 12px 16px !important;
+  }
+
+  .drawer-head h3{
+    font-size:17px !important;
+  }
+
+  .drawer-body{
+    max-height:calc(58vh - 92px) !important;
+    padding:14px 16px 18px !important;
+  }
+
+  .close{
+    width:42px !important;
+    height:42px !important;
+    font-size:24px !important;
+  }
+
+  .leaflet-control-zoom a{
+    width:42px !important;
+    height:42px !important;
+    line-height:42px !important;
+    font-size:22px !important;
+  }
+
+  .leaflet-marker-icon{
+    transform:scale(1.08);
+  }
+}
+
+.mobile-layer-btn{
+  display:none;
+}
+
+@media (max-width: 768px){
+  .mobile-layer-btn{
+    display:block;
+    position:absolute;
+    z-index:6500;
+    left:12px;
+    bottom:18px;
+    border:0;
+    background:#0f172a;
+    color:#fff;
+    border-radius:999px;
+    padding:12px 16px;
+    font-weight:700;
+    box-shadow:0 12px 30px rgba(15,23,42,.25);
+  }
+
+  .drawer.open ~ .mobile-layer-btn{
+    display:none;
+  }
+}
+</style>
+
+<script>
+(function(){
+  const sidebar = document.querySelector('.sidebar');
+  const mapEl = document.getElementById('map');
+
+  if(!sidebar || !mapEl) return;
+
+  const btn = document.createElement('button');
+  btn.className = 'mobile-layer-btn';
+  btn.innerHTML = '☰ Camadas';
+
+  document.body.appendChild(btn);
+
+  btn.addEventListener('click', function(){
+    sidebar.classList.toggle('mobile-open');
+  });
+
+  mapEl.addEventListener('click', function(){
+    sidebar.classList.remove('mobile-open');
+  });
+
+  window.addEventListener('resize', function(){
+    if(window.innerWidth > 768){
+      sidebar.classList.remove('mobile-open');
+    }
+  });
+})();
+</script>
