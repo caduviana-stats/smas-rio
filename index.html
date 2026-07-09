@@ -52,354 +52,1662 @@ document.getElementById('closeDrawer').onclick=()=>document.getElementById('draw
 map.on('click',()=>{results.style.display='none'});
 </script>
 <!-- =========================================================
-     NOVAS CAMADAS SMAS-RIO — COM LATITUDE E LONGITUDE
-     COLAR TODO ESTE BLOCO NO FINAL DO INDEX.HTML
-
-     ATENÇÃO:
-     - Este bloco NÃO substitui o index existente.
-     - Cole no final do arquivo, preferencialmente antes de </body>.
-     - Os círculos só aparecem se cada ponto tiver lat e lon preenchidos.
-     - Formato correto no Rio: lat negativa e lon negativa.
-       Exemplo: lat: -22.9068, lon: -43.1729
+<!-- =========================================================
+BLOCO NOVAS CAMADAS SMAS-RIO
+Cole este bloco no FINAL do index.html, antes de </body> ou mesmo depois.
+Ele adiciona: ALBERGUE, CADRIO, CONSELHO TUTELAR, URS e CENTRO POP.
+Inclui pontos com latitude/longitude, filtros, legenda e atualização do contador.
 ========================================================= -->
 
 <script>
 (function(){
-  if (typeof L === 'undefined' || typeof map === 'undefined') {
-    console.error('Leaflet/map não encontrados. Cole este bloco depois do código principal do mapa.');
+  if (window.__NOVAS_CAMADAS_SMAS_RIO_V2__) {
+    console.warn('Novas camadas SMAS-Rio já foram carregadas. Remova blocos duplicados do final do HTML.');
     return;
   }
+  window.__NOVAS_CAMADAS_SMAS_RIO_V2__ = true;
 
-  if (typeof TYPE_COLORS === 'undefined' || typeof layers === 'undefined' || typeof addMarker === 'undefined') {
-    console.error('Variáveis principais não encontradas. Cole este bloco depois do script principal do SIG.');
-    return;
-  }
-
-  /* =========================================================
-     1. CORES DAS NOVAS CAMADAS
-  ========================================================= */
-  TYPE_COLORS.CADRIO = '#808080';             // cinza
-  TYPE_COLORS.ALBERGUES = '#FF69B4';          // rosa
-  TYPE_COLORS.CONSELHO_TUTELAR = '#000000';   // preto
-  TYPE_COLORS.URS = '#2563EB';                // azul
-  TYPE_COLORS.CENTRO_POP = '#16A34A';         // verde
-  TYPE_COLORS.CENTRAIS = '#8B4513';           // marrom — ajuste se desejar
-
-  /* =========================================================
-     2. SOBRESCREVE O ESTILO DOS MARCADORES PARA ACEITAR
-        OS NOVOS TIPOS
-  ========================================================= */
-  const markerStyleOriginal = markerStyle;
-
-  markerStyle = function(p){
-    if (p && TYPE_COLORS[p.tipo]) {
-      let size = 12;
-      if (p.tipo === 'CAS') size = 18;
-      if (p.tipo === 'INSS') size = 14;
-      if (['CADRIO','ALBERGUES','CONSELHO_TUTELAR','URS','CENTRO_POP','CENTRAIS'].includes(p.tipo)) size = 13;
-
-      return {
-        radius: size / 2,
-        color: '#fff',
-        weight: 2,
-        fillColor: TYPE_COLORS[p.tipo],
-        fillOpacity: .92,
-        opacity: 1
-      };
+  const NOVOS_EQUIPAMENTOS = [
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1809,
+        -22.9136
+      ]
+    },
+    "properties": {
+      "tipo": "ALBERGUE",
+      "nome": "ALBERGUE ALFONSO LAVALLE (idosos misto)",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Mem de Sá, nº 85",
+      "bairro": "LAPA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1000,
+      "precisao": "aproximada por endereço/bairro"
     }
-    return markerStyleOriginal(p);
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1902,
+        -22.9099
+      ]
+    },
+    "properties": {
+      "tipo": "ALBERGUE",
+      "nome": "ALBERGUE HERBERT DE SOUZA (masculino adulto)",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua do Senado, nº 274",
+      "bairro": "CENTRO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1001,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1945,
+        -22.9103
+      ]
+    },
+    "properties": {
+      "tipo": "ALBERGUE",
+      "nome": "ALBERGUE NISE DA SILVEIRA (masculino adulto)",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua General Caldwell, nº 297",
+      "bairro": "CENTRO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1002,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1813,
+        -22.8978
+      ]
+    },
+    "properties": {
+      "tipo": "ALBERGUE",
+      "nome": "ALBERGUE MARTIN LUTHER KING JR (masculino adulto)",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Sacadura Cabral, nº 43",
+      "bairro": "CENTRO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1003,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1847,
+        -22.8983
+      ]
+    },
+    "properties": {
+      "tipo": "ALBERGUE",
+      "nome": "ALBERGUE DAVID MIRANDA (LGBTQIA+) - adultos",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Tenente Possolo, nº 49",
+      "bairro": "SAÚDE",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1004,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2179,
+        -22.9237
+      ]
+    },
+    "properties": {
+      "tipo": "ALBERGUE",
+      "nome": "ALBERGUE DERCY GONÇALVES (Homens Adultos)",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Haddock Lobo, nº 326",
+      "bairro": "TIJUCA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1005,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4378,
+        -22.8696
+      ]
+    },
+    "properties": {
+      "tipo": "ALBERGUE",
+      "nome": "ALBERGUE REALENGO (adultos masculino)",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Brasil, nº 28.650",
+      "bairro": "REALENGO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1006,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1795,
+        -22.9066
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO CENTRO",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua da Carioca, nº 58",
+      "bairro": "CENTRO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1007,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.267,
+        -22.999
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO RINALDO DE LAMARE",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Niemeyer, nº 776 - 8º e 9º andar",
+      "bairro": "SÃO CONRADO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1008,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2828,
+        -22.8879
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO - GRANDE MÉIER",
+      "cas": "3ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Dom Hélder Câmara, nº 5474 (cobertura do Norte Shopping - salas 3004 e 3005)",
+      "bairro": "CACHAMBI",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1009,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2909,
+        -22.8429
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO PENHA",
+      "cas": "4ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Leopoldina Rego, nº 754",
+      "bairro": "PENHA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1010,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.3391,
+        -22.87
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO - MADUREIRA",
+      "cas": "5ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Ministro Edgard Romero, nº 400 - Térreo",
+      "bairro": "MADUREIRA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1011,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.315,
+        -22.8428
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO IRAJÁ",
+      "cas": "6ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Meriti, nº 203 (Largo do Bicão)",
+      "bairro": "VILA DA PENHA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1012,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.3662,
+        -22.9876
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO BARRA/JACAREPAGUÁ",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Ayrton Senna, nº 2541 (Aerotown)",
+      "bairro": "BARRA DA TIJUCA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1013,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4679,
+        -22.8785
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO - BANGU",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Silva Cardoso, nº 349 - Fundos",
+      "bairro": "BANGU",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1014,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.5574,
+        -22.9047
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO CAMPO GRANDE",
+      "cas": "9ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Viúva Dantas, nº 61",
+      "bairro": "CAMPO GRANDE",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1015,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.6846,
+        -22.9185
+      ]
+    },
+    "properties": {
+      "tipo": "CADRIO",
+      "nome": "CENTRAL CADRIO - SANTA CRUZ",
+      "cas": "10ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Fernanda, nº 155",
+      "bairro": "SANTA CRUZ",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1016,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1729,
+        -22.9068
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 01 - CENTRO",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua República do Líbano, nº 54",
+      "bairro": "CENTRO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1017,
+      "precisao": "reaproveitada do SIG para mesmo endereço aproximado"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1848,
+        -22.9343
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 02 - ZONA SUL",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua São Salvador, nº 56",
+      "bairro": "ZONA SUL",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1018,
+      "precisao": "reaproveitada do SIG para mesmo endereço aproximado"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2373,
+        -22.9268
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 03 - VILA ISABEL",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Desembargador Isidro, nº 48",
+      "bairro": "VILA ISABEL",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1019,
+      "precisao": "reaproveitada do SIG para mesmo endereço aproximado"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2677,
+        -22.9028
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 04 - MÉIER",
+      "cas": "3ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua 24 de Maio, nº 931 - 2º andar",
+      "bairro": "MÉIER",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1020,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2849,
+        -22.8758
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 14 - INHAÚMA",
+      "cas": "3ª CAS",
+      "cas_nome": "",
+      "endereco": "Estrada Adhemar Bebiano, nº 3151",
+      "bairro": "INHAÚMA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1021,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.255,
+        -22.852
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 05 - RAMOS",
+      "cas": "4ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Professor Lacê, nº 57",
+      "bairro": "RAMOS",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1022,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2539,
+        -22.862
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 11 - BONSUCESSO",
+      "cas": "4ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua da Regeneração, nº 654",
+      "bairro": "BONSUCESSO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1023,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2034,
+        -22.8001
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 19 - ILHA DO GOVERNADOR",
+      "cas": "4ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Paranapuã, nº 941",
+      "bairro": "ILHA DO GOVERNADOR",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1024,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.3391,
+        -22.87
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 06 - MADUREIRA",
+      "cas": "5ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Ministro Edgard Romero, nº 400 - 2º andar",
+      "bairro": "MADUREIRA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1025,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.35,
+        -22.8317
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 12 - COELHO NETO",
+      "cas": "5ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Brasil, s/n (CIEP Antonio Candeia Filho)",
+      "bairro": "COELHO NETO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1026,
+      "precisao": "aproximada por bairro/equipamento próximo no SIG"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4023,
+        -22.9401
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 07 - JACAREPAGUÁ",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Estrada Rodrigues Caldas, nº 3400 - sala 204",
+      "bairro": "JACAREPAGUÁ",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1027,
+      "precisao": "aproximada por bairro/endereço próximo no SIG"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4417,
+        -23.003
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 16 - BARRA / RECREIO",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Rosalina Brand, nº 200",
+      "bairro": "BARRA / RECREIO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1028,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.3859,
+        -22.9168
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 18 - TAQUARA",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Estrada do Tindiba, nº 2527",
+      "bairro": "TAQUARA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1029,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4679,
+        -22.8785
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 08 - BANGU",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Silva Cardoso, nº 349 - salas 08 e 09",
+      "bairro": "BANGU",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1030,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.43,
+        -22.8812
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 17 - REALENGO",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Estr. do Engenho Novo, s/n (CIEP Thomas Jefferson)",
+      "bairro": "REALENGO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1031,
+      "precisao": "aproximada por bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.5591,
+        -22.9074
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 09 - CAMPO GRANDE",
+      "cas": "9ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Carlos da Silva Costa, nº 32",
+      "bairro": "CAMPO GRANDE",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1032,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.686,
+        -22.9182
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 10 - SANTA CRUZ",
+      "cas": "10ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Lopes Moura, nº 58",
+      "bairro": "SANTA CRUZ",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1033,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.5871,
+        -22.9945
+      ]
+    },
+    "properties": {
+      "tipo": "CONSELHO_TUTELAR",
+      "nome": "CONSELHO TUTELAR 15 - GUARATIBA",
+      "cas": "10ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Pedra Bela, nº 435",
+      "bairro": "GUARATIBA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1034,
+      "precisao": "reaproveitada do SIG para bairro Guaratiba"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1729,
+        -22.9068
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS DOM HÉLDER CÂMARA (adolescente masculino)",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Benedito Hipólito, nº 163 (Praça Onze)",
+      "bairro": "CENTRO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1035,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2096,
+        -22.9257
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS IRMÃ DULCE (adulto feminino)",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Visconde de Jequitinhonha, nº 50",
+      "bairro": "RIO COMPRIDO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1036,
+      "precisao": "reaproveitada do SIG para bairro Rio Comprido"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1848,
+        -22.9343
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS ANA CAROLINA (bebês de 0 a 4 anos)",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Pinheiro Machado, nº 39",
+      "bairro": "LARANJEIRAS",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1037,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2134,
+        -22.9122
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS RAUL SEIXAS (adolescente masculino de 12 a 17 anos)",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Teixeira Soares, nº 43",
+      "bairro": "PRAÇA DA BANDEIRA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1038,
+      "precisao": "reaproveitada do SIG para bairro Praça da Bandeira"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1848,
+        -22.9343
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS BIA BEDRAN (crianças de 4 a 9 anos e grupo de irmãos)",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Pinheiro Machado, nº 39 - casa 1",
+      "bairro": "LARANJEIRAS",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1039,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1776,
+        -22.9274
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS CATETE (adolescente feminino)",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua do Catete, nº 195",
+      "bairro": "CATETE",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1040,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2356,
+        -22.9261
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS LUCINHA ARAUJO (crianças de 06 a 12 anos)",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Cotingo, nº 76 (próximo Hosp.Ordem Terceira)",
+      "bairro": "TIJUCA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1041,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2818,
+        -22.9029
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS ZIRALDO (crianças de 04 a 12 anos misto)",
+      "cas": "3ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Isolina, nº 308",
+      "bairro": "MÉIER",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1042,
+      "precisao": "reaproveitada do SIG para Méier"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2705,
+        -22.9058
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS FRIDA KAHLO (adolescentes gestantes e puérperas)",
+      "cas": "3ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Senador Jaguaribe, nº 40 (em frente ao Lar Anália Franco)",
+      "bairro": "ENGENHO NOVO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1043,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2768,
+        -22.887
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS ANGELICA GOULART (adolescente masculino)",
+      "cas": "3ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Honório, nº 1996",
+      "bairro": "CACHAMBI",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1044,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2435,
+        -22.8091
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS ILHA DO GOVERNADOR (adultos misto)",
+      "cas": "4ª CAS",
+      "cas_nome": "",
+      "endereco": "Estrada dos Maracajás, nº 973",
+      "bairro": "ILHA DO GOVERNADOR",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1045,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2635,
+        -22.8475
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS CASA VIVA – PENHA (adolescente feminino)",
+      "cas": "4ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Bariri, nº 258",
+      "bairro": "OLARIA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1046,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.3397,
+        -22.9552
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS SOCIAL CELY CAMPELLO (adolescente masculino)",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Almirante Felinto Perry, nº 164",
+      "bairro": "ANIL",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1047,
+      "precisao": "reaproveitada do SIG para bairro Anil"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.3925,
+        -22.9238
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS SOCIAL MARIA TEREZA VIEIRA (famílias)",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Estrada do Rio Grande, nº 2561",
+      "bairro": "TAQUARA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1048,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4707,
+        -23.0181
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS MARIA VIEIRA BAZANI (idosos misto)",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Teotônio Vilela, s/n",
+      "bairro": "RECREIO DOS BANDEIRANTES",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1049,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.3844,
+        -22.9196
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS HAROLDO COSTA (idosos e adultos)",
+      "cas": "7ª CAS",
+      "cas_nome": "",
+      "endereco": "Estrada do Engenho Velho, nº 1075 (próximo a Praça Valdir Vieira)",
+      "bairro": "TAQUARA",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1050,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4655,
+        -22.8801
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS CASA VIVA – BANGU (adolescente masculino)",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Cônego de Vasconcelos, nº 856",
+      "bairro": "BANGU",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1051,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.488,
+        -22.8735
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS DINA SFAT (idosos misto)",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Três Marias, s/n (Catiri)",
+      "bairro": "BANGU",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1052,
+      "precisao": "aproximada por bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4717,
+        -22.8782
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS PROFESSORA NILDA NEY (idosos misto)",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Senador Joaquim Pires, nº 115 (próximo a Creche Gente Inocente)",
+      "bairro": "BANGU",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1053,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.4295,
+        -22.8758
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS REALENGO (adultos masculino)",
+      "cas": "8ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Professor Carlos Wenceslau, nº 211 (próximo ao Corpo de Bombeiros)",
+      "bairro": "REALENGO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1054,
+      "precisao": "aproximada por endereço/bairro"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.5585,
+        -22.9035
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS PAULO FREIRE (adolescentes masculinos)",
+      "cas": "9ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua Torricelli, nº 61",
+      "bairro": "CAMPO GRANDE",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1055,
+      "precisao": "reaproveitada do SIG para Campo Grande"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.6358,
+        -22.9001
+      ]
+    },
+    "properties": {
+      "tipo": "URS",
+      "nome": "URS RIO ACOLHEDOR PACIÊNCIA (adulto misto)",
+      "cas": "10ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Hermínio Aurélio Sampaio, nº 105",
+      "bairro": "SANTA CRUZ",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1056,
+      "precisao": "reaproveitada do SIG para região Paciência/Santa Cruz"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.1729,
+        -22.9068
+      ]
+    },
+    "properties": {
+      "tipo": "CENTRO_POP",
+      "nome": "CENTRO POP – CENTRO POP BÁRBARA CALAZANS",
+      "cas": "1ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua República do Líbano, nº 54",
+      "bairro": "CENTRO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1057,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.267,
+        -22.999
+      ]
+    },
+    "properties": {
+      "tipo": "CENTRO_POP",
+      "nome": "CENTRO DE CIDADANIA RINALDO DE LAMARE",
+      "cas": "2ª CAS",
+      "cas_nome": "",
+      "endereco": "Av. Niemeyer, nº 776",
+      "bairro": "SÃO CONRADO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1058,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -43.2539,
+        -22.862
+      ]
+    },
+    "properties": {
+      "tipo": "CENTRO_POP",
+      "nome": "CENTRO POP JOSÉ SARAMAGO",
+      "cas": "4ª CAS",
+      "cas_nome": "",
+      "endereco": "Rua da Regeneração, nº 654",
+      "bairro": "BONSUCESSO",
+      "cep": "",
+      "email": "",
+      "responsavel": "",
+      "abrangencia": "",
+      "id": 1059,
+      "precisao": "reaproveitada do SIG para mesmo endereço"
+    }
+  }
+];
+
+  const NOVAS_CORES = {
+    ALBERGUE: '#FF69B4',
+    CADRIO: '#808080',
+    CONSELHO_TUTELAR: '#000000',
+    URS: '#0066FF',
+    CENTRO_POP: '#00AA00',
+    CENTRAIS: '#8B4513'
   };
 
-  /* =========================================================
-     3. CRIAÇÃO DAS NOVAS CAMADAS NO MAPA
-  ========================================================= */
-  ['CADRIO','ALBERGUES','CONSELHO_TUTELAR','URS','CENTRO_POP','CENTRAIS'].forEach(function(tipo){
+  const ROTULOS = {
+    ALBERGUE: 'Albergues',
+    CADRIO: 'CADRio',
+    CONSELHO_TUTELAR: 'Conselho Tutelar',
+    URS: 'URS',
+    CENTRO_POP: 'Centro POP',
+    CENTRAIS: 'Centrais'
+  };
+
+  if (typeof map === 'undefined' || typeof L === 'undefined') {
+    console.error('Mapa Leaflet não encontrado. Cole este bloco depois do script principal do mapa.');
+    return;
+  }
+
+  if (typeof TYPE_COLORS !== 'undefined') {
+    Object.assign(TYPE_COLORS, NOVAS_CORES);
+  } else {
+    window.TYPE_COLORS = Object.assign({}, NOVAS_CORES);
+  }
+
+  if (typeof layers === 'undefined') {
+    window.layers = {};
+  }
+
+  Object.keys(NOVAS_CORES).forEach(function(tipo){
     if (!layers[tipo]) {
       layers[tipo] = L.layerGroup().addTo(map);
     }
   });
 
-  /* =========================================================
-     4. DADOS DOS NOVOS EQUIPAMENTOS
+  // Evita duplicidade caso algum item já exista no FEATURES.
+  const idsExistentes = new Set((typeof FEATURES !== 'undefined' ? FEATURES : []).map(function(f){
+    return String((f.properties && f.properties.tipo) || '') + '|' + String((f.properties && f.properties.nome) || '');
+  }));
 
-     AQUI É ONDE OS PONTOS DEVEM SER ACRESCENTADOS.
-
-     IMPORTANTE:
-     - lat = latitude
-     - lon = longitude
-     - ambas devem ser números, sem aspas
-     - para Rio de Janeiro, normalmente ambas são negativas
-
-     TIPOS ACEITOS:
-     - CADRIO
-     - ALBERGUES
-     - CONSELHO_TUTELAR
-     - URS
-     - CENTRO_POP
-     - CENTRAIS
-
-     EXEMPLO REAL DE FORMATO:
-     {
-       tipo: 'CONSELHO_TUTELAR',
-       nome: 'CONSELHO TUTELAR EXEMPLO',
-       endereco: 'Rua Exemplo, 123 - Centro',
-       bairro: 'Centro',
-       cas: '',
-       cas_nome: '',
-       email: '',
-       responsavel: '',
-       abrangencia: '',
-       lat: -22.9068,
-       lon: -43.1729
-     },
-  ========================================================= */
-
-  const NOVOS_EQUIPAMENTOS = [
-
-    /* =====================================================
-       COLE ABAIXO OS EQUIPAMENTOS COM LATITUDE E LONGITUDE
-       EXEMPLO:
-
-    {
-      tipo: 'CADRIO',
-      nome: 'CADRIO - NOME DO EQUIPAMENTO',
-      endereco: 'ENDEREÇO COMPLETO',
-      bairro: 'BAIRRO',
-      cas: '',
-      cas_nome: '',
-      email: '',
-      responsavel: '',
-      abrangencia: '',
-      lat: -22.9068,
-      lon: -43.1729
-    },
-
-    {
-      tipo: 'ALBERGUES',
-      nome: 'ALBERGUE - NOME DO EQUIPAMENTO',
-      endereco: 'ENDEREÇO COMPLETO',
-      bairro: 'BAIRRO',
-      cas: '',
-      cas_nome: '',
-      email: '',
-      responsavel: '',
-      abrangencia: '',
-      lat: -22.9068,
-      lon: -43.1729
-    },
-
-    {
-      tipo: 'CONSELHO_TUTELAR',
-      nome: 'CONSELHO TUTELAR - NOME DO EQUIPAMENTO',
-      endereco: 'ENDEREÇO COMPLETO',
-      bairro: 'BAIRRO',
-      cas: '',
-      cas_nome: '',
-      email: '',
-      responsavel: '',
-      abrangencia: '',
-      lat: -22.9068,
-      lon: -43.1729
-    },
-
-    {
-      tipo: 'URS',
-      nome: 'URS - NOME DO EQUIPAMENTO',
-      endereco: 'ENDEREÇO COMPLETO',
-      bairro: 'BAIRRO',
-      cas: '',
-      cas_nome: '',
-      email: '',
-      responsavel: '',
-      abrangencia: '',
-      lat: -22.9068,
-      lon: -43.1729
-    },
-
-    {
-      tipo: 'CENTRO_POP',
-      nome: 'CENTRO POP - NOME DO EQUIPAMENTO',
-      endereco: 'ENDEREÇO COMPLETO',
-      bairro: 'BAIRRO',
-      cas: '',
-      cas_nome: '',
-      email: '',
-      responsavel: '',
-      abrangencia: '',
-      lat: -22.9068,
-      lon: -43.1729
-    },
-
-    {
-      tipo: 'CENTRAIS',
-      nome: 'CENTRAL - NOME DO EQUIPAMENTO',
-      endereco: 'ENDEREÇO COMPLETO',
-      bairro: 'BAIRRO',
-      cas: '',
-      cas_nome: '',
-      email: '',
-      responsavel: '',
-      abrangencia: '',
-      lat: -22.9068,
-      lon: -43.1729
-    },
-
-       ===================================================== */
-
-  ];
-
-  /* =========================================================
-     5. CONVERSÃO DOS DADOS PARA GEOJSON E INSERÇÃO NO MAPA
-  ========================================================= */
-  const startId = Array.isArray(markers) ? markers.length + 1000 : 1000;
-
-  const NOVAS_FEATURES = NOVOS_EQUIPAMENTOS
-    .filter(function(e){
-      const ok = e && typeof e.lat === 'number' && typeof e.lon === 'number' && !isNaN(e.lat) && !isNaN(e.lon);
-      if (!ok) console.warn('Equipamento ignorado por falta de lat/lon válidas:', e);
-      return ok;
-    })
-    .map(function(e, index){
-      return {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [e.lon, e.lat]
-        },
-        properties: {
-          tipo: e.tipo,
-          nome: e.nome || e.tipo,
-          cas: e.cas || e.tipo,
-          cas_nome: e.cas_nome || '',
-          endereco: e.endereco || '',
-          bairro: e.bairro || '',
-          cep: e.cep || '',
-          email: e.email || '',
-          responsavel: e.responsavel || '',
-          abrangencia: e.abrangencia || '',
-          id: startId + index,
-          precisao: e.precisao || 'Coordenada informada pelo usuário; recomenda-se validação oficial antes de uso técnico.'
-        }
-      };
-    });
-
-  NOVAS_FEATURES.forEach(function(feature){
-    if (Array.isArray(FEATURES)) FEATURES.push(feature);
-    addMarker(feature);
+  const novosValidos = NOVOS_EQUIPAMENTOS.filter(function(f){
+    const p = f.properties || {};
+    const c = f.geometry && f.geometry.coordinates;
+    return p.nome && p.tipo && Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1]);
+  }).filter(function(f){
+    const key = String(f.properties.tipo) + '|' + String(f.properties.nome);
+    if (idsExistentes.has(key)) return false;
+    idsExistentes.add(key);
+    return true;
   });
 
-  /* =========================================================
-     6. CHECKBOXES NA BARRA LATERAL
-  ========================================================= */
-  const primeiraSecao = document.querySelector('.sidebar .section');
+  if (typeof FEATURES !== 'undefined') {
+    FEATURES.push.apply(FEATURES, novosValidos);
+  }
 
-  function criarCheckbox(tipo, label, cor){
-    if (!primeiraSecao) return;
-    if (document.querySelector('input[data-type="' + tipo + '"]')) return;
+  function estiloNovo(p){
+    const cor = (typeof TYPE_COLORS !== 'undefined' && TYPE_COLORS[p.tipo]) ? TYPE_COLORS[p.tipo] : '#334155';
+    return {
+      radius: 7,
+      color: '#fff',
+      weight: 2,
+      fillColor: cor,
+      fillOpacity: .94,
+      opacity: 1
+    };
+  }
 
-    const div = document.createElement('div');
-    div.className = 'check';
-    div.innerHTML = `
-      <label>
-        <input type="checkbox" data-type="${tipo}" checked>
-        <span><i class="dot" style="background:${cor}"></i> ${label}</span>
-      </label>
-    `;
-    primeiraSecao.appendChild(div);
+  function abrirDetalhesNovo(p){
+    if (typeof showDetails === 'function') {
+      showDetails(p);
+      return;
+    }
+    alert((p.tipo || '') + '\n' + (p.nome || '') + '\n' + (p.endereco || ''));
+  }
 
-    const cb = div.querySelector('input');
-    cb.addEventListener('change', function(){
-      if (typeof applyFilters === 'function') {
-        applyFilters();
+  function adicionarMarcadorNovo(f){
+    const p = f.properties;
+    const coords = f.geometry.coordinates;
+    const lon = coords[0];
+    const lat = coords[1];
+
+    const m = L.circleMarker([lat, lon], estiloNovo(p))
+      .bindTooltip(p.nome, {
+        className: 'tooltip-clean',
+        direction: 'top'
+      });
+
+    m.on('click', function(){
+      abrirDetalhesNovo(p);
+    });
+
+    m._props = p;
+
+    if (!layers[p.tipo]) {
+      layers[p.tipo] = L.layerGroup().addTo(map);
+    }
+
+    m.addTo(layers[p.tipo]);
+
+    if (typeof markers !== 'undefined') {
+      markers.push(m);
+    }
+  }
+
+  novosValidos.forEach(function(f){
+    // Usa o addMarker original quando possível; se falhar, usa marcador próprio.
+    try {
+      if (typeof addMarker === 'function') {
+        addMarker(f);
       } else {
-        if (cb.checked) map.addLayer(layers[tipo]);
-        else map.removeLayer(layers[tipo]);
+        adicionarMarcadorNovo(f);
       }
+    } catch(e) {
+      adicionarMarcadorNovo(f);
+    }
+  });
+
+  // Adiciona checkboxes das novas camadas no menu esquerdo.
+  const primeiraSecao = document.querySelector('.sidebar .section');
+  if (primeiraSecao) {
+    Object.keys(NOVAS_CORES).forEach(function(tipo){
+      if (tipo === 'CENTRAIS') return; // sem pontos informados nesta lista
+      if (primeiraSecao.querySelector('input[data-type="' + tipo + '"]')) return;
+
+      const div = document.createElement('div');
+      div.className = 'check';
+      div.innerHTML =
+        '<label>' +
+          '<input type="checkbox" data-type="' + tipo + '" checked>' +
+          '<span><i class="dot" style="background:' + NOVAS_CORES[tipo] + '"></i> ' + ROTULOS[tipo] + '</span>' +
+        '</label>';
+
+      primeiraSecao.appendChild(div);
+
+      const cb = div.querySelector('input');
+      cb.addEventListener('change', function(){
+        if (typeof applyFilters === 'function') {
+          applyFilters();
+        } else {
+          if (cb.checked) map.addLayer(layers[tipo]);
+          else map.removeLayer(layers[tipo]);
+        }
+      });
     });
   }
 
-  criarCheckbox('CADRIO', 'CADRIO', TYPE_COLORS.CADRIO);
-  criarCheckbox('ALBERGUES', 'Albergues', TYPE_COLORS.ALBERGUES);
-  criarCheckbox('CONSELHO_TUTELAR', 'Conselho Tutelar', TYPE_COLORS.CONSELHO_TUTELAR);
-  criarCheckbox('URS', 'URS', TYPE_COLORS.URS);
-  criarCheckbox('CENTRO_POP', 'Centro POP', TYPE_COLORS.CENTRO_POP);
-  criarCheckbox('CENTRAIS', 'Centrais', TYPE_COLORS.CENTRAIS);
+  // Adiciona itens na legenda.
+  const legenda = document.querySelector('.legend-row');
+  if (legenda) {
+    Object.keys(NOVAS_CORES).forEach(function(tipo){
+      if (tipo === 'CENTRAIS') return;
+      if (legenda.querySelector('[data-legend-type="' + tipo + '"]')) return;
 
-  /* =========================================================
-     7. LEGENDA
-  ========================================================= */
-  const legendRow = document.querySelector('.legend-row');
-
-  function criarLegenda(tipo, label){
-    if (!legendRow) return;
-    if (legendRow.querySelector('[data-legend="' + tipo + '"]')) return;
-
-    const span = document.createElement('span');
-    span.setAttribute('data-legend', tipo);
-    span.innerHTML = `<i class="dot" style="background:${TYPE_COLORS[tipo]}"></i> ${label}`;
-    legendRow.appendChild(span);
+      const span = document.createElement('span');
+      span.setAttribute('data-legend-type', tipo);
+      span.innerHTML = '<i class="dot" style="background:' + NOVAS_CORES[tipo] + '"></i> ' + ROTULOS[tipo];
+      legenda.appendChild(span);
+    });
   }
 
-  criarLegenda('CADRIO', 'CADRIO');
-  criarLegenda('ALBERGUES', 'Albergues');
-  criarLegenda('CONSELHO_TUTELAR', 'Conselho Tutelar');
-  criarLegenda('URS', 'URS');
-  criarLegenda('CENTRO_POP', 'Centro POP');
-  criarLegenda('CENTRAIS', 'Centrais');
+  // Atualiza o contador da barra superior.
+  function atualizarContadores(){
+    const stats = document.querySelector('.stats');
+    if (!stats || typeof FEATURES === 'undefined') return;
 
-  /* =========================================================
-     8. BUSCA E TEXTO DO TOPO
-  ========================================================= */
-  const brandSubtitle = document.querySelector('.brand p');
-  if (brandSubtitle) {
-    brandSubtitle.textContent = 'CAS, CRAS, CREAS, INSS e demais equipamentos da rede';
+    const ordem = ['CAS','CRAS','CREAS','INSS','ALBERGUE','CADRIO','CONSELHO_TUTELAR','URS','CENTRO_POP'];
+    const contagem = {};
+
+    FEATURES.forEach(function(f){
+      const tipo = f.properties && f.properties.tipo;
+      if (!tipo) return;
+      contagem[tipo] = (contagem[tipo] || 0) + 1;
+    });
+
+    stats.innerHTML = ordem
+      .filter(function(tipo){ return contagem[tipo] > 0; })
+      .map(function(tipo){
+        const rotulo = ROTULOS[tipo] || tipo;
+        return '<span class="pill"><b>' + contagem[tipo] + '</b> ' + rotulo + '</span>';
+      })
+      .join('');
   }
 
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput) {
-    searchInput.placeholder = 'Pesquisar equipamento, bairro, CAS, INSS, Conselho Tutelar, Centro POP...';
-  }
+  atualizarContadores();
 
-  /* =========================================================
-     9. CONTADORES NO TOPO
-  ========================================================= */
-  const stats = document.querySelector('.stats');
-
-  function countTipo(tipo){
-    if (!Array.isArray(FEATURES)) return 0;
-    return FEATURES.filter(function(f){
-      return f.properties && f.properties.tipo === tipo;
-    }).length;
-  }
-
-  function criarPill(tipo, label){
-    if (!stats) return;
-    if (stats.querySelector('[data-stat="' + tipo + '"]')) return;
-
-    const span = document.createElement('span');
-    span.className = 'pill';
-    span.setAttribute('data-stat', tipo);
-    span.innerHTML = `<b>${countTipo(tipo)}</b> ${label}`;
-    stats.appendChild(span);
-  }
-
-  criarPill('CADRIO', 'CADRIO');
-  criarPill('ALBERGUES', 'Albergues');
-  criarPill('CONSELHO_TUTELAR', 'Conselhos');
-  criarPill('URS', 'URS');
-  criarPill('CENTRO_POP', 'Centro POP');
-  criarPill('CENTRAIS', 'Centrais');
-
-  /* =========================================================
-     10. REAPLICA FILTROS, SE EXISTIREM
-  ========================================================= */
+  // Garante que os filtros reflitam as novas camadas.
   if (typeof applyFilters === 'function') {
     applyFilters();
   }
 
-  console.log('Novas camadas adicionadas ao SIG:', NOVAS_FEATURES.length, 'pontos.');
+  console.log('Novas camadas SMAS-Rio carregadas:', novosValidos.length, 'equipamentos.');
 })();
 </script>
+
 
 </body></html>
 
