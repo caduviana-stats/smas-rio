@@ -2028,6 +2028,102 @@ Inclui pontos com latitude/longitude, filtros, legenda e atualização do contad
 })();
 </script>
 
+  <!-- AJUSTE PARA PONTOS SOBREPOSTOS — colar no final do index.html, depois do bloco das novas camadas -->
+<script>
+(function(){
+  if (typeof markers === 'undefined' || !Array.isArray(markers)) return;
+
+  // Distância visual entre pontos que possuem exatamente a mesma latitude/longitude.
+  // Aumente para 35 ou 40 se ainda ficarem muito próximos.
+  const DISTANCIA_METROS = 28;
+
+  function chaveCoordenada(latlng){
+    return latlng.lat.toFixed(6) + ',' + latlng.lng.toFixed(6);
+  }
+
+  function deslocarLatLng(lat, lng, dxMetros, dyMetros){
+    const novaLat = lat + (dyMetros / 111320);
+    const novaLng = lng + (dxMetros / (111320 * Math.cos(lat * Math.PI / 180)));
+    return L.latLng(novaLat, novaLng);
+  }
+
+  function aplicarDeslocamentoPontosSobrepostos(){
+    const grupos = {};
+
+    markers.forEach(function(marker){
+      if (!marker || typeof marker.getLatLng !== 'function') return;
+
+      // Guarda a coordenada original apenas uma vez, para evitar deslocamento acumulado.
+      if (!marker._latlngOriginalSMAS) {
+        const atual = marker.getLatLng();
+        marker._latlngOriginalSMAS = L.latLng(atual.lat, atual.lng);
+      }
+
+      const original = marker._latlngOriginalSMAS;
+      const chave = chaveCoordenada(original);
+
+      if (!grupos[chave]) grupos[chave] = [];
+      grupos[chave].push(marker);
+    });
+
+    Object.keys(grupos).forEach(function(chave){
+      const grupo = grupos[chave];
+
+      // Se só existe um ponto naquele local, mantém no lugar original.
+      if (grupo.length === 1) {
+        grupo[0].setLatLng(grupo[0]._latlngOriginalSMAS);
+        return;
+      }
+
+      grupo.forEach(function(marker, i){
+        const original = marker._latlngOriginalSMAS;
+        const total = grupo.length;
+
+        let dx, dy;
+
+        if (total === 2) {
+          dx = (i === 0 ? -1 : 1) * DISTANCIA_METROS;
+          dy = 0;
+        } else if (total === 3) {
+          const angulos = [-90, 30, 150];
+          const ang = angulos[i] * Math.PI / 180;
+          dx = Math.cos(ang) * DISTANCIA_METROS;
+          dy = Math.sin(ang) * DISTANCIA_METROS;
+        } else {
+          const ang = (2 * Math.PI * i) / total;
+          dx = Math.cos(ang) * DISTANCIA_METROS;
+          dy = Math.sin(ang) * DISTANCIA_METROS;
+        }
+
+        marker.setLatLng(deslocarLatLng(original.lat, original.lng, dx, dy));
+      });
+    });
+  }
+
+  aplicarDeslocamentoPontosSobrepostos();
+
+  // Reaplica o ajuste sempre que os filtros redesenharem as camadas.
+  if (typeof applyFilters === 'function' && !window.__SMAS_APPLYFILTERS_COM_DESLOCAMENTO__) {
+    const applyFiltersOriginal = applyFilters;
+
+    window.applyFilters = function(){
+      applyFiltersOriginal();
+      setTimeout(aplicarDeslocamentoPontosSobrepostos, 0);
+    };
+
+    // Também atualiza a referência global nos navegadores que expõem funções do script no escopo da janela.
+    try { applyFilters = window.applyFilters; } catch(e) {}
+
+    window.__SMAS_APPLYFILTERS_COM_DESLOCAMENTO__ = true;
+  }
+
+  // Reaplica após zoom/movimento, sem alterar filtros.
+  if (typeof map !== 'undefined' && map && typeof map.on === 'function') {
+    map.on('zoomend moveend', aplicarDeslocamentoPontosSobrepostos);
+  }
+})();
+</script>
+
 
 </body></html>
 
