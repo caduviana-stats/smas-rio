@@ -60,11 +60,11 @@ Inclui pontos com latitude/longitude, filtros, legenda e atualização do contad
 
 <script>
 (function(){
-  if (window.__NOVAS_CAMADAS_SMAS_RIO_V2__) {
+  if (window.__NOVAS_CAMADAS_SMAS_RIO_V3__) {
     console.warn('Novas camadas SMAS-Rio já foram carregadas. Remova blocos duplicados do final do HTML.');
     return;
   }
-  window.__NOVAS_CAMADAS_SMAS_RIO_V2__ = true;
+  window.__NOVAS_CAMADAS_SMAS_RIO_V3__ = true;
 
   const NOVOS_EQUIPAMENTOS = [
   {
@@ -1723,6 +1723,30 @@ Inclui pontos com latitude/longitude, filtros, legenda e atualização do contad
     };
   }
 
+
+  function normalizarCas(valor){
+    return String(valor || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toUpperCase();
+  }
+
+  function obterCasSelecionada(){
+    /*
+      O arquivo original guarda selectedCas dentro do primeiro <script>.
+      Em alguns navegadores/versões, esse valor não fica acessível ao bloco colado no final.
+      Por isso, a fonte mais segura passa a ser o botão ativo em "Filtrar por CAS".
+    */
+    const ativo = document.querySelector('.cas-btn.active');
+    if (ativo && ativo.textContent) return ativo.textContent.trim();
+
+    try {
+      if (typeof selectedCas !== 'undefined') return selectedCas;
+    } catch(e) {}
+
+    return 'TODAS';
+  }
+
   function aplicarFiltrosAmpliados(){
     if (typeof layers === 'undefined' || typeof markers === 'undefined') return;
 
@@ -1741,11 +1765,11 @@ Inclui pontos com latitude/longitude, filtros, legenda e atualização do contad
       const p = m._props || {};
       if (!p.tipo || !layers[p.tipo]) return;
 
-      const casSelecionada = (typeof selectedCas !== 'undefined') ? selectedCas : 'TODAS';
+      const casSelecionada = obterCasSelecionada();
       const casOk = (
         casSelecionada === 'TODAS' ||
         p.tipo === 'INSS' ||
-        p.cas === casSelecionada
+        normalizarCas(p.cas) === normalizarCas(casSelecionada)
       );
 
       if (enabled[p.tipo] && casOk) {
@@ -1767,9 +1791,15 @@ Inclui pontos com latitude/longitude, filtros, legenda e atualização do contad
     cb.addEventListener('change', aplicarFiltrosAmpliados);
   });
 
+  document.querySelectorAll('.cas-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      setTimeout(aplicarFiltrosAmpliados, 0);
+    });
+  });
+
   aplicarFiltrosAmpliados();
 
-  console.log('Novas camadas SMAS-Rio carregadas com filtros corrigidos:', novosValidos.length, 'equipamentos.');
+  console.log('Novas camadas SMAS-Rio carregadas com filtros CAS corrigidos:', novosValidos.length, 'equipamentos.');
 })();
 </script>
 
