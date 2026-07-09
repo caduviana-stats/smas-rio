@@ -51,17 +51,16 @@ input.addEventListener('input',()=>{const q=input.value.trim().toLowerCase();res
 document.getElementById('closeDrawer').onclick=()=>document.getElementById('drawer').classList.remove('open');
 map.on('click',()=>{results.style.display='none'});
 </script>
-  <!-- =========================================================
-     NOVAS CAMADAS SMAS-RIO
-     COLAR TODO ESTE BLOCO NO FINAL DO INDEX.HTML,
-     DEPOIS DE TODO O CÓDIGO QUE JÁ EXISTE.
+<!-- =========================================================
+     NOVAS CAMADAS SMAS-RIO — COM LATITUDE E LONGITUDE
+     COLAR TODO ESTE BLOCO NO FINAL DO INDEX.HTML
 
-     IMPORTANTE:
-     - Não substitua nada.
-     - Cole antes de </body>, se possível.
-     - Para cada equipamento, preencha latitude e longitude.
-     - Formato das coordenadas: latitude negativa, longitude negativa.
-       Exemplo Rio: lat: -22.9068, lon: -43.1729
+     ATENÇÃO:
+     - Este bloco NÃO substitui o index existente.
+     - Cole no final do arquivo, preferencialmente antes de </body>.
+     - Os círculos só aparecem se cada ponto tiver lat e lon preenchidos.
+     - Formato correto no Rio: lat negativa e lon negativa.
+       Exemplo: lat: -22.9068, lon: -43.1729
 ========================================================= -->
 
 <script>
@@ -76,45 +75,60 @@ map.on('click',()=>{results.style.display='none'});
     return;
   }
 
-  /* =========================
+  /* =========================================================
      1. CORES DAS NOVAS CAMADAS
-  ========================= */
-  TYPE_COLORS.CADRIO = '#808080';
-  TYPE_COLORS.ALBERGUES = '#FF69B4';
-  TYPE_COLORS.CONSELHO_TUTELAR = '#000000';
-  TYPE_COLORS.URS = '#2563EB';
-  TYPE_COLORS.CENTRO_POP = '#16A34A';
-  TYPE_COLORS.CENTRAIS = '#8B4513';
+  ========================================================= */
+  TYPE_COLORS.CADRIO = '#808080';             // cinza
+  TYPE_COLORS.ALBERGUES = '#FF69B4';          // rosa
+  TYPE_COLORS.CONSELHO_TUTELAR = '#000000';   // preto
+  TYPE_COLORS.URS = '#2563EB';                // azul
+  TYPE_COLORS.CENTRO_POP = '#16A34A';         // verde
+  TYPE_COLORS.CENTRAIS = '#8B4513';           // marrom — ajuste se desejar
 
-  /* =========================
-     2. CRIAÇÃO DAS NOVAS CAMADAS
-  ========================= */
+  /* =========================================================
+     2. SOBRESCREVE O ESTILO DOS MARCADORES PARA ACEITAR
+        OS NOVOS TIPOS
+  ========================================================= */
+  const markerStyleOriginal = markerStyle;
+
+  markerStyle = function(p){
+    if (p && TYPE_COLORS[p.tipo]) {
+      let size = 12;
+      if (p.tipo === 'CAS') size = 18;
+      if (p.tipo === 'INSS') size = 14;
+      if (['CADRIO','ALBERGUES','CONSELHO_TUTELAR','URS','CENTRO_POP','CENTRAIS'].includes(p.tipo)) size = 13;
+
+      return {
+        radius: size / 2,
+        color: '#fff',
+        weight: 2,
+        fillColor: TYPE_COLORS[p.tipo],
+        fillOpacity: .92,
+        opacity: 1
+      };
+    }
+    return markerStyleOriginal(p);
+  };
+
+  /* =========================================================
+     3. CRIAÇÃO DAS NOVAS CAMADAS NO MAPA
+  ========================================================= */
   ['CADRIO','ALBERGUES','CONSELHO_TUTELAR','URS','CENTRO_POP','CENTRAIS'].forEach(function(tipo){
     if (!layers[tipo]) {
       layers[tipo] = L.layerGroup().addTo(map);
     }
   });
 
-  /* =========================
-     3. DADOS DOS NOVOS EQUIPAMENTOS
+  /* =========================================================
+     4. DADOS DOS NOVOS EQUIPAMENTOS
 
-     COLE/EDITE OS EQUIPAMENTOS ABAIXO.
+     AQUI É ONDE OS PONTOS DEVEM SER ACRESCENTADOS.
 
-     Para adicionar um novo ponto, copie este modelo:
-
-     {
-       tipo: 'CONSELHO_TUTELAR',
-       nome: 'CONSELHO TUTELAR EXEMPLO',
-       endereco: 'Rua Exemplo, 123 - Bairro',
-       bairro: 'Bairro',
-       cas: '',
-       cas_nome: '',
-       email: '',
-       responsavel: '',
-       abrangencia: '',
-       lat: -22.9068,
-       lon: -43.1729
-     },
+     IMPORTANTE:
+     - lat = latitude
+     - lon = longitude
+     - ambas devem ser números, sem aspas
+     - para Rio de Janeiro, normalmente ambas são negativas
 
      TIPOS ACEITOS:
      - CADRIO
@@ -123,17 +137,32 @@ map.on('click',()=>{results.style.display='none'});
      - URS
      - CENTRO_POP
      - CENTRAIS
-  ========================= */
+
+     EXEMPLO REAL DE FORMATO:
+     {
+       tipo: 'CONSELHO_TUTELAR',
+       nome: 'CONSELHO TUTELAR EXEMPLO',
+       endereco: 'Rua Exemplo, 123 - Centro',
+       bairro: 'Centro',
+       cas: '',
+       cas_nome: '',
+       email: '',
+       responsavel: '',
+       abrangencia: '',
+       lat: -22.9068,
+       lon: -43.1729
+     },
+  ========================================================= */
 
   const NOVOS_EQUIPAMENTOS = [
 
-    /* =========================
-       CADRIO — CINZA
-    ========================= */
-    /*
+    /* =====================================================
+       COLE ABAIXO OS EQUIPAMENTOS COM LATITUDE E LONGITUDE
+       EXEMPLO:
+
     {
       tipo: 'CADRIO',
-      nome: 'CADRIO EXEMPLO',
+      nome: 'CADRIO - NOME DO EQUIPAMENTO',
       endereco: 'ENDEREÇO COMPLETO',
       bairro: 'BAIRRO',
       cas: '',
@@ -144,15 +173,10 @@ map.on('click',()=>{results.style.display='none'});
       lat: -22.9068,
       lon: -43.1729
     },
-    */
 
-    /* =========================
-       ALBERGUES — ROSA
-    ========================= */
-    /*
     {
       tipo: 'ALBERGUES',
-      nome: 'ALBERGUE EXEMPLO',
+      nome: 'ALBERGUE - NOME DO EQUIPAMENTO',
       endereco: 'ENDEREÇO COMPLETO',
       bairro: 'BAIRRO',
       cas: '',
@@ -163,15 +187,10 @@ map.on('click',()=>{results.style.display='none'});
       lat: -22.9068,
       lon: -43.1729
     },
-    */
 
-    /* =========================
-       CONSELHO TUTELAR — PRETO
-    ========================= */
-    /*
     {
       tipo: 'CONSELHO_TUTELAR',
-      nome: 'CONSELHO TUTELAR EXEMPLO',
+      nome: 'CONSELHO TUTELAR - NOME DO EQUIPAMENTO',
       endereco: 'ENDEREÇO COMPLETO',
       bairro: 'BAIRRO',
       cas: '',
@@ -182,15 +201,10 @@ map.on('click',()=>{results.style.display='none'});
       lat: -22.9068,
       lon: -43.1729
     },
-    */
 
-    /* =========================
-       URS — AZUL
-    ========================= */
-    /*
     {
       tipo: 'URS',
-      nome: 'URS EXEMPLO',
+      nome: 'URS - NOME DO EQUIPAMENTO',
       endereco: 'ENDEREÇO COMPLETO',
       bairro: 'BAIRRO',
       cas: '',
@@ -201,15 +215,10 @@ map.on('click',()=>{results.style.display='none'});
       lat: -22.9068,
       lon: -43.1729
     },
-    */
 
-    /* =========================
-       CENTRO POP — VERDE
-    ========================= */
-    /*
     {
       tipo: 'CENTRO_POP',
-      nome: 'CENTRO POP EXEMPLO',
+      nome: 'CENTRO POP - NOME DO EQUIPAMENTO',
       endereco: 'ENDEREÇO COMPLETO',
       bairro: 'BAIRRO',
       cas: '',
@@ -220,17 +229,10 @@ map.on('click',()=>{results.style.display='none'});
       lat: -22.9068,
       lon: -43.1729
     },
-    */
 
-    /* =========================
-       CENTRAIS — MARROM
-       Como você não indicou cor específica para CENTRAIS,
-       deixei marrom. Pode trocar acima em TYPE_COLORS.CENTRAIS.
-    ========================= */
-    /*
     {
       tipo: 'CENTRAIS',
-      nome: 'CENTRAL EXEMPLO',
+      nome: 'CENTRAL - NOME DO EQUIPAMENTO',
       endereco: 'ENDEREÇO COMPLETO',
       bairro: 'BAIRRO',
       cas: '',
@@ -241,17 +243,21 @@ map.on('click',()=>{results.style.display='none'});
       lat: -22.9068,
       lon: -43.1729
     },
-    */
+
+       ===================================================== */
+
   ];
 
-  /* =========================
-     4. CONVERSÃO PARA GEOJSON E INSERÇÃO NO MAPA
-  ========================= */
+  /* =========================================================
+     5. CONVERSÃO DOS DADOS PARA GEOJSON E INSERÇÃO NO MAPA
+  ========================================================= */
   const startId = Array.isArray(markers) ? markers.length + 1000 : 1000;
 
   const NOVAS_FEATURES = NOVOS_EQUIPAMENTOS
     .filter(function(e){
-      return e && typeof e.lat === 'number' && typeof e.lon === 'number';
+      const ok = e && typeof e.lat === 'number' && typeof e.lon === 'number' && !isNaN(e.lat) && !isNaN(e.lon);
+      if (!ok) console.warn('Equipamento ignorado por falta de lat/lon válidas:', e);
+      return ok;
     })
     .map(function(e, index){
       return {
@@ -278,45 +284,13 @@ map.on('click',()=>{results.style.display='none'});
     });
 
   NOVAS_FEATURES.forEach(function(feature){
-    if (Array.isArray(FEATURES)) {
-      FEATURES.push(feature);
-    }
+    if (Array.isArray(FEATURES)) FEATURES.push(feature);
     addMarker(feature);
   });
 
-  /* =========================
-     5. AJUSTE VISUAL DOS MARCADORES NOVOS
-     Sobrescreve markerStyle para aceitar os novos tipos.
-  ========================= */
-  const oldMarkerStyle = markerStyle;
-  window.markerStyle = function(p){
-    if (TYPE_COLORS[p.tipo]) {
-      let size = 12;
-      if (p.tipo === 'CAS') size = 18;
-      if (p.tipo === 'INSS') size = 14;
-      if (['CADRIO','ALBERGUES','CONSELHO_TUTELAR','URS','CENTRO_POP','CENTRAIS'].includes(p.tipo)) size = 13;
-
-      return {
-        radius: size / 2,
-        color: '#fff',
-        weight: 2,
-        fillColor: TYPE_COLORS[p.tipo],
-        fillOpacity: .92,
-        opacity: 1
-      };
-    }
-    return oldMarkerStyle(p);
-  };
-
-  markers.forEach(function(m){
-    if (m._props && TYPE_COLORS[m._props.tipo] && m.setStyle) {
-      m.setStyle(markerStyle(m._props));
-    }
-  });
-
-  /* =========================
-     6. ADICIONA CHECKBOXES NA BARRA LATERAL
-  ========================= */
+  /* =========================================================
+     6. CHECKBOXES NA BARRA LATERAL
+  ========================================================= */
   const primeiraSecao = document.querySelector('.sidebar .section');
 
   function criarCheckbox(tipo, label, cor){
@@ -338,11 +312,8 @@ map.on('click',()=>{results.style.display='none'});
       if (typeof applyFilters === 'function') {
         applyFilters();
       } else {
-        if (cb.checked) {
-          map.addLayer(layers[tipo]);
-        } else {
-          map.removeLayer(layers[tipo]);
-        }
+        if (cb.checked) map.addLayer(layers[tipo]);
+        else map.removeLayer(layers[tipo]);
       }
     });
   }
@@ -354,9 +325,9 @@ map.on('click',()=>{results.style.display='none'});
   criarCheckbox('CENTRO_POP', 'Centro POP', TYPE_COLORS.CENTRO_POP);
   criarCheckbox('CENTRAIS', 'Centrais', TYPE_COLORS.CENTRAIS);
 
-  /* =========================
-     7. ADICIONA ITENS NA LEGENDA
-  ========================= */
+  /* =========================================================
+     7. LEGENDA
+  ========================================================= */
   const legendRow = document.querySelector('.legend-row');
 
   function criarLegenda(tipo, label){
@@ -376,9 +347,9 @@ map.on('click',()=>{results.style.display='none'});
   criarLegenda('CENTRO_POP', 'Centro POP');
   criarLegenda('CENTRAIS', 'Centrais');
 
-  /* =========================
-     8. ATUALIZA TEXTO DO TOPO E BUSCA
-  ========================= */
+  /* =========================================================
+     8. BUSCA E TEXTO DO TOPO
+  ========================================================= */
   const brandSubtitle = document.querySelector('.brand p');
   if (brandSubtitle) {
     brandSubtitle.textContent = 'CAS, CRAS, CREAS, INSS e demais equipamentos da rede';
@@ -389,9 +360,9 @@ map.on('click',()=>{results.style.display='none'});
     searchInput.placeholder = 'Pesquisar equipamento, bairro, CAS, INSS, Conselho Tutelar, Centro POP...';
   }
 
-  /* =========================
+  /* =========================================================
      9. CONTADORES NO TOPO
-  ========================= */
+  ========================================================= */
   const stats = document.querySelector('.stats');
 
   function countTipo(tipo){
@@ -418,6 +389,13 @@ map.on('click',()=>{results.style.display='none'});
   criarPill('URS', 'URS');
   criarPill('CENTRO_POP', 'Centro POP');
   criarPill('CENTRAIS', 'Centrais');
+
+  /* =========================================================
+     10. REAPLICA FILTROS, SE EXISTIREM
+  ========================================================= */
+  if (typeof applyFilters === 'function') {
+    applyFilters();
+  }
 
   console.log('Novas camadas adicionadas ao SIG:', NOVAS_FEATURES.length, 'pontos.');
 })();
