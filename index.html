@@ -52,7 +52,6 @@ document.getElementById('closeDrawer').onclick=()=>document.getElementById('draw
 map.on('click',()=>{results.style.display='none'});
 </script>
 <!-- =========================================================
-<!-- =========================================================
 BLOCO NOVAS CAMADAS SMAS-RIO
 Cole este bloco no FINAL do index.html, antes de </body> ou mesmo depois.
 Ele adiciona: ALBERGUE, CADRIO, CONSELHO TUTELAR, URS e CENTRO POP.
@@ -1699,12 +1698,78 @@ Inclui pontos com latitude/longitude, filtros, legenda e atualização do contad
 
   atualizarContadores();
 
-  // Garante que os filtros reflitam as novas camadas.
-  if (typeof applyFilters === 'function') {
-    applyFilters();
+  /*
+    CORREÇÃO DOS FILTROS DAS NOVAS CAMADAS
+    Este trecho substitui a lógica original de filtragem por uma versão ampliada.
+    Assim, ALBERGUE, CADRIO, CONSELHO_TUTELAR, URS e CENTRO_POP passam a se comportar
+    exatamente como CAS, CRAS, CREAS e INSS: ao desmarcar, somem do mapa; ao marcar, voltam.
+  */
+  function estiloAmpliado(p){
+    if (typeof markerStyle === 'function' && ['CAS','CRAS','CREAS','INSS'].includes(p.tipo)) {
+      return markerStyle(p);
+    }
+
+    const cor = (typeof TYPE_COLORS !== 'undefined' && TYPE_COLORS[p.tipo])
+      ? TYPE_COLORS[p.tipo]
+      : (NOVAS_CORES[p.tipo] || '#334155');
+
+    return {
+      radius: p.tipo === 'CADRIO' ? 7 : 7,
+      color: '#fff',
+      weight: 2,
+      fillColor: cor,
+      fillOpacity: .94,
+      opacity: 1
+    };
   }
 
-  console.log('Novas camadas SMAS-Rio carregadas:', novosValidos.length, 'equipamentos.');
+  function aplicarFiltrosAmpliados(){
+    if (typeof layers === 'undefined' || typeof markers === 'undefined') return;
+
+    const enabled = {};
+    document.querySelectorAll('input[data-type]').forEach(function(cb){
+      enabled[cb.dataset.type] = cb.checked;
+    });
+
+    Object.keys(layers).forEach(function(tipo){
+      if (layers[tipo] && typeof layers[tipo].clearLayers === 'function') {
+        layers[tipo].clearLayers();
+      }
+    });
+
+    markers.forEach(function(m){
+      const p = m._props || {};
+      if (!p.tipo || !layers[p.tipo]) return;
+
+      const casSelecionada = (typeof selectedCas !== 'undefined') ? selectedCas : 'TODAS';
+      const casOk = (
+        casSelecionada === 'TODAS' ||
+        p.tipo === 'INSS' ||
+        p.cas === casSelecionada
+      );
+
+      if (enabled[p.tipo] && casOk) {
+        if (typeof m.setStyle === 'function') {
+          m.setStyle(estiloAmpliado(p));
+        }
+        m.addTo(layers[p.tipo]);
+      }
+    });
+  }
+
+  try {
+    applyFilters = aplicarFiltrosAmpliados;
+  } catch(e) {
+    window.applyFilters = aplicarFiltrosAmpliados;
+  }
+
+  document.querySelectorAll('input[data-type]').forEach(function(cb){
+    cb.addEventListener('change', aplicarFiltrosAmpliados);
+  });
+
+  aplicarFiltrosAmpliados();
+
+  console.log('Novas camadas SMAS-Rio carregadas com filtros corrigidos:', novosValidos.length, 'equipamentos.');
 })();
 </script>
 
